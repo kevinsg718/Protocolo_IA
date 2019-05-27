@@ -1,0 +1,14 @@
+{
+  "name": "cliente",
+  "version": "1.0.0",
+  "description": "",
+  "main": "test_client.js",
+  "scripts": {
+    "start": "node test_client.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "socket.io": "^2.2.0"
+  }
+}
