@@ -3,7 +3,7 @@ import numpy as np
 
 def minimax_alphabetha(board, movimientos, depth, a, b, maximizador, data, playerID, direcciones):
     # verificar si ya llegue a la profundidad deseada o ya es un estado final (no movimientos)
-    if depth == 0 or movimientos == 0:
+    if depth == 0 or len(movimientos) == 0:
         return valor_board(board, data['player_turn_id']), 0  # se analiza el valor con el id del jugador original
 
     # se va invirtiendo el player ID al del padre, para poder computar los movimientos
@@ -17,12 +17,14 @@ def minimax_alphabetha(board, movimientos, depth, a, b, maximizador, data, playe
         for movimiento, direccion in zip(movimientos, direcciones):
             nuevoBoard = mover(np.array(board), movimiento, playerID, direccion)
             nuevosMovimientos, nuevasDirecciones = obtener_movimientos(nuevoBoard, nuevoPlayerID)
+
             valor, movimiento_anterior = minimax_alphabetha(nuevoBoard, nuevosMovimientos, depth - 1, a, b, False, data,
                                                             nuevoPlayerID,
                                                             nuevasDirecciones)
+            if valor > a:
+                mejorMovimiento = movimiento
             a = max(a, valor)
 
-            mejorMovimiento = movimiento
             if a >= b:
                 break
 
@@ -36,9 +38,10 @@ def minimax_alphabetha(board, movimientos, depth, a, b, maximizador, data, playe
             valor, movimiento_anterior = minimax_alphabetha(nuevoBoard, nuevosMovimientos, depth - 1, a, b, True, data,
                                                             nuevoPlayerID,
                                                             nuevasDirecciones)
+            if valor < b:
+                mejorMovimiento = movimiento
             b = min(b, valor)
 
-            mejorMovimiento = movimiento
             if a >= b:
                 break
 
@@ -57,7 +60,7 @@ def valor_board(board, playerID):
                 else:
                     fichasContrario += 1
 
-    return fichasJugador + fichasContrario
+    return fichasJugador - fichasContrario
 
 
 def mover(board, movimiento, playerID, direcciones):
