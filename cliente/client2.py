@@ -1,9 +1,10 @@
 import socketio
 import math, random
 import numpy as np
+import minimax
 
 sio = socketio.Client()
-userName = "k" + str(random.randint(1, 1000))
+userName = str(input("Ingrese nombre: "))
 tournamentID = 12
 
 
@@ -77,170 +78,25 @@ def play(data):
     board = np.array(board).reshape((8, 8))
     playerID = data['player_turn_id']
 
-    # PASO 1: obtener las posibles movidas
-    movimientos = []
-    valido = False
-    for fila in range(8):
-        for columna in range(8):
-            valido = False
-            # TIENE QUE ESTAR VACIA LA POSICION
-            if board[fila][columna] != 0:
-                continue  # analizar la siguiente posicion
+    ####################################################################################################################
+    # PASO 1: obtener las posiblesMovimientos movidas
+    movimientos, direcciones = minimax.obtener_movimientos(board, playerID)
 
-            # PARA DERECHA
-            if columna < 7:
-                if board[fila][columna + 1] not in [0, playerID]:
-                    siguiente_columna = columna + 2
-                    while siguiente_columna <= 7:
-                        if board[fila][siguiente_columna] == playerID:
-                            movimientos.append(fila * 8 + columna)
-                            valido = True
-                            break
-
-                        elif board[fila][siguiente_columna] == 0:
-                            break
-
-                        siguiente_columna += 1
-
-            if valido:
-                continue  # detener si ya se verifico que es valido
-
-            # PARA IZQUIERDA
-            if columna > 0:
-                if board[fila][columna - 1] not in [0, playerID]:
-                    siguiente_columna = columna - 2
-                    while siguiente_columna >= 0:
-                        if board[fila][siguiente_columna] == playerID:
-                            movimientos.append(fila * 8 + columna)
-                            valido = True
-                            break
-
-                        elif board[fila][siguiente_columna] == 0:
-                            break
-
-                        siguiente_columna -= 1
-            if valido:
-                continue  # detener si ya se verifico que es valido
-
-            # ABAJO
-            if fila < 7:
-                if board[fila + 1][columna] not in [0, playerID]:
-                    siguiente_fila = fila + 2
-                    while siguiente_fila <= 7:
-                        if board[siguiente_fila][columna] == playerID:
-                            movimientos.append(fila * 8 + columna)
-                            valido = True
-                            break
-
-                        elif board[siguiente_fila][columna] == 0:
-                            break
-
-                        siguiente_fila += 1
-            if valido:
-                continue  # detener si ya se verifico que es valido
-
-            # ARRIBA
-            if fila > 0:
-                if board[fila - 1][columna] not in [0, playerID]:
-                    siguiente_fila = fila - 2
-                    while siguiente_fila >= 0:
-                        if board[siguiente_fila][columna] == playerID:
-                            movimientos.append(fila * 8 + columna)
-                            valido = True
-                            break
-
-                        elif board[siguiente_fila][columna] == 0:
-                            break
-
-                        siguiente_fila -= 1
-            if valido:
-                continue  # detener si ya se verifico que es valido
-
-            # DIAGONAL DERECHA ABAJO
-            if fila < 7 and columna < 7:
-                if board[fila + 1][columna + 1] not in [0, playerID]:
-                    siguiente_fila = fila + 2
-                    siguiente_columna = columna + 2
-                    while siguiente_fila <= 7 and siguiente_columna <= 7:
-                        if board[siguiente_fila][siguiente_columna] == playerID:
-                            movimientos.append(fila * 8 + columna)
-                            valido = True
-                            break
-
-                        elif board[siguiente_fila][siguiente_columna] == 0:
-                            break
-
-                        siguiente_fila += 1
-                        siguiente_columna += 1
-            if valido:
-                continue  # detener si ya se verifico que es valido
-
-            # 3.2) DIAGONAL DERECHA ARRIBA
-            if fila > 0 and columna < 7:
-                if board[fila - 1][columna + 1] not in [0, playerID]:
-                    siguiente_fila = fila - 2
-                    siguiente_columna = columna + 2
-                    while siguiente_fila >= 0 and siguiente_columna <= 7:
-                        if board[siguiente_fila][siguiente_columna] == playerID:
-                            movimientos.append(fila * 8 + columna)
-                            valido = True
-                            break
-
-                        elif board[siguiente_fila][siguiente_columna] == 0:
-                            break
-
-                        siguiente_fila -= 1
-                        siguiente_columna += 1
-            if valido:
-                continue  # detener si ya se verifico que es valido
-
-            # DIAGONAL IZQUIERDA ABAJO
-            if fila < 7 and columna > 0:
-                if board[fila + 1][columna - 1] not in [0, playerID]:
-                    siguiente_fila = fila + 2
-                    siguiente_columna = columna - 2
-                    while siguiente_fila <= 7 and siguiente_columna >= 0:
-                        if board[siguiente_fila][siguiente_columna] == playerID:
-                            movimientos.append(fila * 8 + columna)
-                            valido = True
-                            break
-
-                        elif board[siguiente_fila][siguiente_columna] == 0:
-                            break
-
-                        siguiente_fila += 1
-                        siguiente_columna -= 1
-            if valido:
-                continue  # detener si ya se verifico que es valido
-
-            # DIAGONAL IZQUIERDA ARRIBA
-            if fila > 0 and columna > 0:
-                if board[fila - 1][columna - 1] not in [0, playerID]:
-                    siguiente_fila = fila - 2
-                    siguiente_columna = columna - 2
-                    while siguiente_fila >= 0 and siguiente_columna >= 0:
-                        if board[siguiente_fila][siguiente_columna] == playerID:
-                            movimientos.append(fila * 8 + columna)
-                            valido = True
-                            break
-
-                        elif board[siguiente_fila][siguiente_columna] == 0:
-                            break
-
-                        siguiente_fila -= 1
-                        siguiente_columna -= 1
-
-    # PASO 2: ANALIZAR LOS POSIBLES MOVIMIENTOS Y ESCOGER EL MEJOR
-    movimiento = random.choice(movimientos)
-    # imprimir los movimientos
-    posibles = ""
+    # imprimir los movimientos encontrados
+    posiblesMovimientos = ""
     for mov in movimientos:
-        posibles += numero_letras(mov) + " "
+        posiblesMovimientos += numero_letras(mov) + " "
+    print("Los posibles movimientos son: ", posiblesMovimientos)
 
-    print("Los posibles movimientos son: ", posibles)
-
-    print("Mi movimiento es: ", numero_letras(movimiento), "\n\n")
-    return movimiento
+    ####################################################################################################################
+    # PASO 2: ANALIZAR LOS POSIBLES MOVIMIENTOS Y ESCOGER EL MEJOR
+    # movimiento = random.choice(movimientos)
+    valor, mejorMovimiento = minimax.minimax_alphabetha(board=board, movimientos=movimientos, depth=3, a=-math.inf,
+                                                        b=math.inf,
+                                                        maximizador=True, data=data,
+                                                        direcciones=direcciones, playerID=playerID)
+    print("Mi movimiento es: ", numero_letras(mejorMovimiento), "\n\n")
+    return mejorMovimiento
 
 
 def numero_letras(movimiento):
